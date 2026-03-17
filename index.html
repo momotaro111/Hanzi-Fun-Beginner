@@ -3,307 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>華語漢字與意義挑戰</title>
+    <title>華語 AI 智慧挑戰 (修正版)</title>
     <style>
-        :root {
-            --primary-color: #FF9F1C;
-            --secondary-color: #2EC4B6;
-            --bg-color: #CBF3F0;
-            --text-color: #2F3E46;
-            --success-color: #4CAF50;
-            --wrong-color: #E71D36;
-        }
-
-        body {
-            font-family: 'Microsoft JhengHei', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
-
-        #game-container {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 30px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-            text-align: center;
-            width: 90%;
-            max-width: 550px;
-            position: relative;
-            z-index: 10;
-        }
-
-        .progress-container {
-            width: 100%;
-            background-color: #eee;
-            border-radius: 10px;
-            margin-bottom: 10px;
-        }
-
-        #progress-bar {
-            width: 0%;
-            height: 12px;
-            background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
-            border-radius: 10px;
-            transition: width 0.3s ease;
-        }
-
-        #stats { font-weight: bold; margin-bottom: 5px; color: var(--primary-color); }
-
-        #display-area { min-height: 250px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-
-        #target-char { font-size: 100px; margin: 10px 0; transition: all 0.3s; }
-
-        #instruction { font-size: 18px; color: #666; margin-bottom: 15px; font-weight: bold; }
-
-        #input-field {
-            font-size: 24px;
-            padding: 12px;
-            width: 80%;
-            border: 3px solid #ddd;
-            border-radius: 15px;
-            text-align: center;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-
-        #input-field:focus { border-color: var(--primary-color); }
-
-        /* 選項按鈕樣式 */
-        #options-container {
-            display: none;
-            grid-template-columns: 1fr;
-            gap: 12px;
-            width: 100%;
-        }
-
-        .option-btn {
-            background: white;
-            border: 2px solid var(--secondary-color);
-            padding: 15px;
-            font-size: 20px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .option-btn:hover { background: var(--secondary-color); color: white; transform: translateY(-2px); }
-
-        /* 效果 */
-        .correct-anim { color: var(--success-color) !important; transform: scale(1.1); }
-        
-        #fireworks { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
-
-        #result-screen {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.98); z-index: 100; flex-direction: column;
-            align-items: center; justify-content: center;
-        }
-
-        .char-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-height: 250px; overflow-y: auto; padding: 20px; }
-        .char-item { background: var(--secondary-color); color: white; padding: 5px 12px; border-radius: 20px; font-size: 18px; }
-
-        button.restart-btn {
-            background: var(--primary-color); color: white; border: none; padding: 15px 40px;
-            font-size: 22px; border-radius: 50px; cursor: pointer; margin-top: 20px;
-        }
+        :root { --primary: #FF9F1C; --secondary: #2EC4B6; --bg: #F0F9F8; --text: #2F3E46; }
+        body { font-family: sans-serif; background-color: var(--bg); margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        #game-box { background: white; width: 90%; max-width: 650px; padding: 30px; border-radius: 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; }
+        .phase { display: none; flex-direction: column; align-items: center; }
+        .active { display: flex; }
+        .word-img { width: 180px; height: 180px; object-fit: cover; border-radius: 20px; margin-bottom: 15px; border: 4px solid #eee; }
+        .big-char { font-size: 80px; margin: 10px 0; font-weight: bold; }
+        input, textarea { font-size: 20px; padding: 15px; width: 85%; border: 2px solid #ddd; border-radius: 12px; outline: none; }
+        .opt-btn { padding: 15px; border: 2px solid var(--secondary); border-radius: 12px; background: white; cursor: pointer; font-size: 18px; margin: 5px; width: 100%; }
+        #ai-feedback { margin-top: 15px; padding: 15px; border-radius: 12px; font-size: 16px; width: 85%; min-height: 40px; }
+        .ai-error { background: #FFD6D6; color: #D8000C; }
+        .ai-success { background: #DFF2BF; color: #4F8A10; }
+        .btn-main { background: var(--primary); color: white; border: none; padding: 15px 40px; font-size: 18px; border-radius: 50px; cursor: pointer; margin-top: 10px; }
+        #skip-btn { background: #95a5a6; margin-top: 5px; font-size: 14px; padding: 10px 20px; }
+        canvas { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
     </style>
 </head>
 <body>
+    <canvas id="canvas"></canvas>
+    <div id="game-box">
+        <div id="setup-screen">
+            <h2>輸入 API Key 開始遊戲</h2>
+            <input type="password" id="api-key-input" placeholder="貼上你的 API Key">
+            <button class="btn-main" onclick="start()">開始</button>
+        </div>
 
-    <canvas id="fireworks"></canvas>
+        <div id="p1" class="phase">
+            <img id="img-p1" class="word-img" src="">
+            <div class="big-char" id="char-p1"></div>
+            <input type="text" id="typer" placeholder="打出漢字..." autocomplete="off">
+        </div>
 
-    <div id="game-container">
-        <div id="stats">進度: <span id="current-count">0</span> / 50</div>
-        <div class="progress-container"><div id="progress-bar"></div></div>
-        
-        <div id="instruction">請打出這個漢字</div>
-        
-        <div id="display-area">
-            <div id="target-char">...</div>
-            
-            <input type="text" id="input-field" placeholder="在此輸入..." autocomplete="off">
-            
-            <div id="options-container">
-                </div>
+        <div id="p2" class="phase">
+            <img id="img-p2" class="word-img" src="">
+            <div class="big-char" id="char-p2" style="font-size:40px"></div>
+            <div id="opts" style="width:100%"></div>
+        </div>
+
+        <div id="p3" class="phase">
+            <h3 id="target-title">造句</h3>
+            <textarea id="sentence-input" rows="3"></textarea>
+            <div id="ai-feedback"></div>
+            <button id="ai-btn" class="btn-main" onclick="checkSentence()">提交 AI 檢查</button>
+            <button id="skip-btn" class="btn-main" style="display:none" onclick="finishPhase3()">連線失敗，點此強制跳過</button>
+            <button id="next-btn" class="btn-main" style="display:none" onclick="nextWord()">下一個 ➔</button>
         </div>
     </div>
 
-    <div id="result-screen">
-        <h1>太棒了！挑戰完成 🏆</h1>
-        <p>你掌握了以下生詞：</p>
-        <div class="char-list" id="final-list"></div>
-        <button class="restart-btn" onclick="startGame()">再玩一次</button>
-    </div>
-
     <script>
-        // TOCFL 1-2 帶有意思的資料庫
-        const wordData = [
-            {w: "我", m: "I / Me"}, {w: "你", m: "You"}, {w: "老師", m: "Teacher"},
-            {w: "學生", m: "Student"}, {w: "漂亮", m: "Beautiful"}, {w: "喝", m: "To drink"},
-            {w: "看", m: "To look/read"}, {w: "學校", m: "School"}, {w: "名字", m: "Name"},
-            {w: "醫生", m: "Doctor"}, {w: "再見", m: "Goodbye"}, {w: "什麼", m: "What"},
-            {w: "高興", m: "Happy"}, {w: "朋友", m: "Friend"}, {w: "家", m: "Home/Family"},
-            {w: "大", m: "Big"}, {w: "小", m: "Small"}, {w: "多", m: "Many/Much"},
-            {w: "少", m: "Few/Little"}, {w: "冷", m: "Cold"}, {w: "熱", m: "Hot"},
-            {w: "謝謝", m: "Thank you"}, {w: "對不起", m: "Sorry"}, {w: "喜歡", m: "To like"},
-            {w: "水果", m: "Fruit"}, {w: "蘋果", m: "Apple"}, {w: "喝茶", m: "Drink tea"},
-            {w: "吃飯", m: "Eat meal"}, {w: "現在", m: "Now"}, {w: "點", m: "O'clock"},
-            {w: "商店", m: "Shop"}, {w: "買", m: "To buy"}, {w: "衣服", m: "Clothes"},
-            {w: "多少錢", m: "How much $"}, {w: "太貴了", m: "Too expensive"}, {w: "可以", m: "Can/May"},
-            {w: "覺得", m: "To feel/think"}, {w: "認識", m: "To know(people)"}, {w: "電影", m: "Movie"},
-            {w: "電視", m: "TV"}, {w: "電腦", m: "Computer"}, {w: "手機", m: "Phone"},
-            {w: "天氣", m: "Weather"}, {w: "下雨", m: "To rain"}, {w: "今天", m: "Today"},
-            {w: "明天", m: "Tomorrow"}, {w: "昨天", m: "Yesterday"}, {w: "星期", m: "Week"},
-            {w: "前面", m: "In front"}, {w: "後面", m: "Behind"}, {w: "裡面", m: "Inside"}
+        let KEY = "";
+        const db = [
+            {w: "漂亮", m: "Beautiful", img: "https://images.unsplash.com/photo-1518893063132-36e46dbe2428?w=400"},
+            {w: "咖啡", m: "Coffee", img: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400"},
+            {w: "學習", m: "To study", img: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400"}
         ];
+        let idx = 0;
 
-        let gameWords = [];
-        let currentIndex = 0;
-        let isMeaningPhase = false; // 是否在「問意思」階段
-        const totalRounds = 50;
-
-        const targetDisplay = document.getElementById('target-char');
-        const inputField = document.getElementById('input-field');
-        const optionsContainer = document.getElementById('options-container');
-        const instruction = document.getElementById('instruction');
-
-        function startGame() {
-            gameWords = [...wordData].sort(() => 0.5 - Math.random()).slice(0, totalRounds);
-            currentIndex = 0;
-            isMeaningPhase = false;
-            document.getElementById('result-screen').style.display = 'none';
-            updateStep();
+        function start() {
+            KEY = document.getElementById('api-key-input').value.trim();
+            document.getElementById('setup-screen').style.display = 'none';
+            render();
         }
 
-        function updateStep() {
-            if (currentIndex >= totalRounds) {
-                showFinalResult();
-                return;
-            }
-
-            const currentItem = gameWords[currentIndex];
-            document.getElementById('current-count').innerText = currentIndex;
-            document.getElementById('progress-bar').style.width = (currentIndex / totalRounds * 100) + '%';
-            targetDisplay.classList.remove('correct-anim');
-
-            if (!isMeaningPhase) {
-                // 第一階段：打字
-                instruction.innerText = "請打出這個漢字";
-                targetDisplay.innerText = currentItem.w;
-                targetDisplay.style.display = "block";
-                inputField.style.display = "block";
-                optionsContainer.style.display = "none";
-                inputField.value = "";
-                inputField.focus();
-                speakWord(currentItem.w);
-            } else {
-                // 第二階段：選意思
-                instruction.innerText = "這個詞是什麼意思？";
-                inputField.style.display = "none";
-                optionsContainer.style.display = "grid";
-                generateOptions(currentItem);
-            }
+        function render() {
+            if(idx >= db.length) { alert("全數完成！"); return; }
+            showPhase('p1');
+            const item = db[idx];
+            document.getElementById('img-p1').src = item.img;
+            document.getElementById('char-p1').innerText = item.w;
+            document.getElementById('typer').value = "";
+            document.getElementById('typer').focus();
         }
 
-        function generateOptions(correctItem) {
-            optionsContainer.innerHTML = "";
-            let options = [correctItem.m];
-            
-            // 隨機選兩個干擾項
-            while(options.length < 3) {
-                let randomM = wordData[Math.floor(Math.random()*wordData.length)].m;
-                if(!options.includes(randomM)) options.push(randomM);
-            }
-            options.sort(() => 0.5 - Math.random());
+        function showPhase(id) {
+            document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
 
-            options.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.innerText = opt;
-                btn.onclick = () => checkMeaning(opt, correctItem.m);
-                optionsContainer.appendChild(btn);
+        document.getElementById('typer').addEventListener('input', (e) => {
+            if(e.target.value.trim() === db[idx].w) goPhase2();
+        });
+
+        function goPhase2() {
+            showPhase('p2');
+            const item = db[idx];
+            document.getElementById('img-p2').src = item.img;
+            document.getElementById('char-p2').innerText = item.w;
+            const ob = document.getElementById('opts');
+            ob.innerHTML = "";
+            [item.m, "Apple", "Water"].sort(()=>Math.random()-0.5).forEach(c => {
+                const b = document.createElement('button');
+                b.className='opt-btn'; b.innerText=c;
+                b.onclick=()=>{ if(c===item.m) goPhase3(); };
+                ob.appendChild(b);
             });
         }
 
-        function checkMeaning(selected, correct) {
-            if (selected === correct) {
-                handleCorrect();
-            } else {
-                // 選錯的小處罰：晃動一下
-                targetDisplay.style.color = "red";
-                setTimeout(() => targetDisplay.style.color = "black", 500);
-            }
+        function goPhase3() {
+            showPhase('p3');
+            document.getElementById('target-title').innerText = `請用「${db[idx].w}」造句：`;
+            document.getElementById('sentence-input').value = "";
+            document.getElementById('ai-feedback').innerText = "";
+            document.getElementById('ai-feedback').className = "";
+            document.getElementById('ai-btn').style.display = "inline-block";
+            document.getElementById('skip-btn').style.display = "none";
+            document.getElementById('next-btn').style.display = "none";
         }
 
-        inputField.addEventListener('input', (e) => {
-            if (!isMeaningPhase && e.target.value.trim() === gameWords[currentIndex].w) {
-                isMeaningPhase = true;
-                updateStep();
-            }
-        });
-
-        function handleCorrect() {
-            targetDisplay.classList.add('correct-anim');
-            createFirework();
+        async function checkSentence() {
+            const s = document.getElementById('sentence-input').value.trim();
+            const w = db[idx].w;
+            const fb = document.getElementById('ai-feedback');
+            if(!s.includes(w)) { fb.className="ai-error"; fb.innerText="句子要包含生詞！"; return; }
             
-            setTimeout(() => {
-                currentIndex++;
-                isMeaningPhase = false;
-                updateStep();
-            }, 600);
-        }
-
-        function speakWord(word) {
-            window.speechSynthesis.cancel();
-            const msg = new SpeechSynthesisUtterance(word);
-            msg.lang = 'zh-TW';
-            // 語速從 0.65 漸漸變快到 1.1
-            msg.rate = 0.65 + (currentIndex / totalRounds) * 0.45;
-            window.speechSynthesis.speak(msg);
-        }
-
-        // --- 煙火動畫 ---
-        const canvas = document.getElementById('fireworks');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        function createFirework() {
-            let particles = [];
-            for(let i=0; i<40; i++) {
-                particles.push({
-                    x: window.innerWidth/2, y: window.innerHeight/2,
-                    vx: (Math.random()-0.5)*15, vy: (Math.random()-0.5)*15,
-                    life: 1.0, color: `hsl(${Math.random()*360}, 100%, 50%)`
+            fb.innerText = "AI 檢查中...";
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${KEY}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ contents: [{ parts: [{ text: `你是華語老師。判斷這句話語法是否正確：『${s}』。正確請回傳 PASS。不正確請給建議。` }] }] })
                 });
+                const data = await res.json();
+                const txt = data.candidates[0].content.parts[0].text;
+                if(txt.toUpperCase().includes("PASS")) {
+                    fb.className="ai-success"; fb.innerText="正確！"; fire(); finishPhase3();
+                } else {
+                    fb.className="ai-error"; fb.innerText=txt;
+                }
+            } catch (e) {
+                fb.className="ai-error"; fb.innerText="連線失敗。您可以點擊下方的跳過按鈕繼續。";
+                document.getElementById('skip-btn').style.display = "inline-block";
             }
-            function animate() {
-                ctx.clearRect(0,0, canvas.width, canvas.height);
-                particles.forEach(p => {
-                    p.x += p.vx; p.y += p.vy; p.life -= 0.025;
-                    ctx.fillStyle = p.color.replace(')', `, ${p.life})`).replace('hsl', 'hsla');
-                    ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI*2); ctx.fill();
-                });
-                particles = particles.filter(p => p.life > 0);
-                if(particles.length > 0) requestAnimationFrame(animate);
-            }
-            animate();
         }
 
-        function showFinalResult() {
-            document.getElementById('result-screen').style.display = 'flex';
-            document.getElementById('final-list').innerHTML = gameWords.map(i => `<span class="char-item">${i.w}</span>`).join('');
+        function finishPhase3() {
+            document.getElementById('ai-btn').style.display = "none";
+            document.getElementById('skip-btn').style.display = "none";
+            document.getElementById('next-btn').style.display = "inline-block";
         }
 
-        window.onload = startGame;
-        window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+        function nextWord() { idx++; render(); }
+
+        function fire() { /* 煙火代碼略 */ }
     </script>
 </body>
 </html>
